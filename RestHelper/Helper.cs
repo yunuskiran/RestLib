@@ -130,7 +130,7 @@ namespace RestHelper
                     var content = await response.Content.ReadAsStringAsync();
                     if (!response.IsSuccessStatusCode) throw new Exception(content);
 
-                    if (string.IsNullOrWhiteSpace(content) && content != EmptyContent)
+                    if (!string.IsNullOrWhiteSpace(content) && content != EmptyContent)
                         result = JsonConvert.DeserializeObject<TResponse>(content);
                 }
             }
@@ -168,7 +168,7 @@ namespace RestHelper
                     var content = await response.Content.ReadAsStringAsync();
                     if (!response.IsSuccessStatusCode) throw new Exception(content);
 
-                    if (string.IsNullOrWhiteSpace(content) && content != EmptyContent)
+                    if (!string.IsNullOrWhiteSpace(content) && content != EmptyContent)
                         result = JsonConvert.DeserializeObject<TResponse>(content);
                 }
             }
