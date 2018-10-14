@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using static System.Activator;
 using static System.Text.Encoding;
+using static System.TimeSpan;
+using static Newtonsoft.Json.JsonConvert;
 
 namespace RestHelper
 {
@@ -21,46 +24,49 @@ namespace RestHelper
         private const string BaseExceptionString = "Error Occured!";
         private const string ContentNullExceptionString = "Content is null";
 
+        [ExcludeFromCodeCoverage]
         public Helper()
-            : this(TimeSpan.FromSeconds(60))
+            : this(FromSeconds(60))
         {
         }
 
+        [ExcludeFromCodeCoverage]
         public Helper(TimeSpan timeOut)
             : this(timeOut, UTF8)
         {
         }
 
+        [ExcludeFromCodeCoverage]
         public Helper(Encoding encoding)
-            : this(TimeSpan.FromSeconds(60), encoding)
+            : this(FromSeconds(60), encoding)
         {
         }
 
+        [ExcludeFromCodeCoverage]
         public Helper(string mediaType)
-            : this(TimeSpan.FromSeconds(60), mediaType)
+            : this(FromSeconds(60), mediaType)
         {
         }
 
-        public void GetAsync()
-        {
-            throw new NotImplementedException();
-        }
-
+        [ExcludeFromCodeCoverage]
         public Helper(TimeSpan timeOut, Encoding encoding)
             : this(timeOut, encoding, "application/json")
         {
         }
 
+        [ExcludeFromCodeCoverage]
         public Helper(TimeSpan timeOut, string mediaType)
             : this(timeOut, UTF8, mediaType)
         {
         }
 
+        [ExcludeFromCodeCoverage]
         public Helper(Encoding encoding, string mediaType)
-            : this(TimeSpan.FromSeconds(60), encoding, mediaType)
+            : this(FromSeconds(60), encoding, mediaType)
         {
         }
 
+        [ExcludeFromCodeCoverage]
         public Helper(TimeSpan timeOut, Encoding encoding, string mediaType)
         {
             _timeOut = timeOut;
@@ -100,38 +106,52 @@ namespace RestHelper
 
         public async Task<TResponse> PostAsync(string url, TRequest request)
         {
-            if (string.IsNullOrWhiteSpace(url)) throw new ArgumentNullException(nameof(url));
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                throw new ArgumentNullException(nameof(url));
+            }
 
-            var result = Activator.CreateInstance<TResponse>();
+            var result = CreateInstance<TResponse>();
 
             using (var client = new HttpClient())
             {
-                client.Timeout = TimeSpan.FromSeconds(60);
+                client.Timeout = FromSeconds(60);
                 client.DefaultRequestHeaders.ExpectContinue = false;
                 var response = await client.PostAsync(url,
-                    new StringContent(JsonConvert.SerializeObject(request), _encoding, _mediaType));
+                    new StringContent(SerializeObject(request), _encoding, _mediaType));
                 if (response.Content.Headers.ContentEncoding.Contains(Gzip))
                 {
                     var content = await response.Content.ReadAsByteArrayAsync();
-                    if (!response.IsSuccessStatusCode) throw new Exception(BaseExceptionString);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception(BaseExceptionString);
+                    }
 
-                    if (content == null) throw new Exception(ContentNullExceptionString);
+                    if (content == null)
+                    {
+                        throw new Exception(ContentNullExceptionString);
+                    }
 
                     using (var inputStream = new MemoryStream(content))
                     using (var gzip = new GZipStream(inputStream, CompressionMode.Decompress))
                     using (var reader = new StreamReader(gzip))
                     {
                         var readedContent = await reader.ReadToEndAsync();
-                        result = JsonConvert.DeserializeObject<TResponse>(readedContent);
+                        result = DeserializeObject<TResponse>(readedContent);
                     }
                 }
                 else
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    if (!response.IsSuccessStatusCode) throw new Exception(content);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception(content);
+                    }
 
                     if (!string.IsNullOrWhiteSpace(content) && content != EmptyContent)
-                        result = JsonConvert.DeserializeObject<TResponse>(content);
+                    {
+                        result = DeserializeObject<TResponse>(content);
+                    }
                 }
             }
 
@@ -140,9 +160,12 @@ namespace RestHelper
 
         public async Task<TResponse> GetAsync(string url, TRequest request)
         {
-            if (string.IsNullOrWhiteSpace(url)) throw new ArgumentNullException(nameof(url));
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                throw new ArgumentNullException(nameof(url));
+            }
 
-            var result = Activator.CreateInstance<TResponse>();
+            var result = CreateInstance<TResponse>();
             using (var client = new HttpClient())
             {
                 client.Timeout = _timeOut;
@@ -152,24 +175,35 @@ namespace RestHelper
                 if (response.Content.Headers.ContentEncoding.Contains(Gzip))
                 {
                     var content = await response.Content.ReadAsByteArrayAsync();
-                    if (!response.IsSuccessStatusCode) throw new Exception(BaseExceptionString);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception(BaseExceptionString);
+                    }
 
-                    if (content == null) throw new Exception(ContentNullExceptionString);
+                    if (content == null)
+                    {
+                        throw new Exception(ContentNullExceptionString);
+                    }
 
                     using (var inputStream = new MemoryStream(content))
                     using (var gzip = new GZipStream(inputStream, CompressionMode.Decompress))
                     using (var reader = new StreamReader(gzip))
                     {
-                        result = JsonConvert.DeserializeObject<TResponse>(await reader.ReadToEndAsync());
+                        result = DeserializeObject<TResponse>(await reader.ReadToEndAsync());
                     }
                 }
                 else
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    if (!response.IsSuccessStatusCode) throw new Exception(content);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception(content);
+                    }
 
                     if (!string.IsNullOrWhiteSpace(content) && content != EmptyContent)
-                        result = JsonConvert.DeserializeObject<TResponse>(content);
+                    {
+                        result = DeserializeObject<TResponse>(content);
+                    }
                 }
             }
 
